@@ -1,0 +1,26 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: ds-automated-email-dev
+  namespace: development
+spec:
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - args:
+                - python
+                - main.py
+              envFrom:
+                - secretRef:
+                    name: ds-automated-email-dev
+              image: registry.gitlab.com/cads-platform-ds-projects/automated-email-service:latest
+              imagePullPolicy: IfNotPresent
+              name: automated-email-crontab
+          imagePullSecrets:
+            - name: regcred-ds-projs
+          restartPolicy: Never
+  schedule: 0 0 */30 * *
+  successfulJobsHistoryLimit: 3

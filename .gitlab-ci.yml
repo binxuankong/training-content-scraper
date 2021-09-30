@@ -1,0 +1,69 @@
+# Based on: https://blog.callr.tech/building-docker-images-with-gitlab-ci-best-practices/
+image: docker:19
+
+stages:
+  - build
+  - push
+  - deploy
+
+services:
+  - docker:dind
+
+.docker:
+  before_script:
+    - echo -n $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
+
+Build:
+  extends: .docker
+  stage: build
+  when: manual
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:latest || true
+    - >
+      docker build
+      --pull
+      --build-arg VCS_REF=$CI_COMMIT_SHA
+      --build-arg VCS_URL=$CI_PROJECT_URL
+      --cache-from $CI_REGISTRY_IMAGE:latest
+      --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+      .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+
+deploy DEV:
+  image:
+    name: bitnami/kubectl:1.17
+    entrypoint: [""]
+  when: manual
+  stage: deploy
+  variables:
+    GIT_STRATEGY: none
+  environment:
+    name: development
+  script:
+    - kubectl --kubeconfig=$KUBECONFIG -n development set image cronjobs/ds-automated-email-dev automated-email-crontab=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+
+deploy STAGING:
+  image:
+    name: bitnami/kubectl:1.17
+    entrypoint: [""]
+  when: manual
+  stage: deploy
+  variables:
+    GIT_STRATEGY: none
+  environment:
+    name: staging
+  script:
+    - kubectl --kubeconfig=$KUBECONFIG -n staging set image cronjobs/ds-automated-email-staging automated-email-crontab=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+
+deploy ISTIO-PROD:
+  image: 
+    name: bitnami/kubectl:1.17
+    entrypoint: [""]
+  when: manual
+  stage: deploy
+  variables:
+    GIT_STRATEGY: none
+  environment:
+    name: production-istio
+  script:
+    - kubectl --kubeconfig=$KUBECONFIG -n production set image cronjobs/ds-automated-email-prod automated-email-crontab=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
