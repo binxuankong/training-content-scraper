@@ -1,0 +1,5 @@
+pandas
+re
+nltk
+difflab
+sqlalchemy
