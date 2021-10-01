@@ -1,11 +1,14 @@
 import pandas as pd
 import datetime as dt
+import time
 from sqlalchemy import create_engine
 from config.settings import settings
 # from secrets import settings
 from jmlr_scraper import jmlr_scraper
 from medium_scraper import medium_scraper
+from youtube_scraper import youtube_scraper
 from queries import *
+from data_skills import DATA_SKILLS
 
 
 def main():
@@ -47,6 +50,22 @@ def main():
         print('Succesfully scraped contents from Medium.')
     except Exception as e:
         print('Error in scraping contents from Medium:', e)
+    
+    # Youtube
+    # Scrape only at the start of the month
+    if dt.datetime.today().day == 1:
+        try:
+            df_yt = pd.DataFrame()
+            for skill in DATA_SKILLS:
+                df_temp = youtube_scraper(skill, 'this_month', all_skills)
+                df_yt = df_yt.append(df_temp)
+                time.sleep(5)
+            df_yt = df_yt.drop_duplicates(subset='id')
+            df_yt = df_yt.sort_values(by=['published_year', 'published_month', 'id'])
+            df_yt.to_sql('ContentYoutube', engine, index=False, if_exists='append')
+            print('Succesfully scraped contents from Youtube')
+        except Exception as e:
+            print('Error in scraping contents from Youtube:', e)
 
     engine.dispose()
     return

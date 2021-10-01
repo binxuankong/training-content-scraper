@@ -19,8 +19,6 @@ def medium_scraper(tag, date, skills):
         claps = get_claps(card)
         if title is None or is_comment(card) or claps is None:
             continue
-        if claps < 100:
-            continue
         this_skills, data_skills = get_skills(title, subtitle, skills)
         card_list.append({
             'id': get_id(card),
@@ -36,7 +34,8 @@ def medium_scraper(tag, date, skills):
             'data_skills': data_skills,
         })
     df = pd.DataFrame.from_dict(card_list)
-    df['published_date'] = pd.to_datetime(df['published_date'])
+    if len(df) > 0:
+        df['published_date'] = pd.to_datetime(df['published_date'])
     return df
 
 def get_id(card):
