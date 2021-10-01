@@ -62,7 +62,10 @@ def main():
                 time.sleep(5)
             df_yt = df_yt.drop_duplicates(subset='id')
             df_yt = df_yt.sort_values(by=['published_year', 'published_month', 'id'])
-            df_yt.to_sql('ContentYoutube', engine, index=False, if_exists='append')
+            # Add to temp table to avoid id conflict
+            df_yt.to_sql('ContentYoutubeTemp', engine, index=False, if_exists='replace')
+            engine.execute(youtube_update_query)
+            engine.execute(youtube_insert_query)
             print('Succesfully scraped contents from Youtube')
         except Exception as e:
             print('Error in scraping contents from Youtube:', e)
