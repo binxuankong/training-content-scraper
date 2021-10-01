@@ -1,7 +1,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: ds-automated-email-dev
+  name: ds-training-content-scraper
   namespace: development
 spec:
   failedJobsHistoryLimit: 1
@@ -15,12 +15,12 @@ spec:
                 - main.py
               envFrom:
                 - secretRef:
-                    name: ds-automated-email-dev
-              image: registry.gitlab.com/cads-platform-ds-projects/automated-email-service:latest
+                    name: ds-training-content-scraper
+              image: registry.gitlab.com/cads-platform-ds-projects/training-content-scraper:latest
               imagePullPolicy: IfNotPresent
-              name: automated-email-crontab
+              name: training-content-scraper-crontab
           imagePullSecrets:
             - name: regcred-ds-projs
           restartPolicy: Never
-  schedule: 0 0 */30 * *
+  schedule: 0 3 * * *
   successfulJobsHistoryLimit: 3

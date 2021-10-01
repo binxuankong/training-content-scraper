@@ -40,30 +40,4 @@ deploy DEV:
   environment:
     name: development
   script:
-    - kubectl --kubeconfig=$KUBECONFIG -n development set image cronjobs/ds-automated-email-dev automated-email-crontab=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-
-deploy STAGING:
-  image:
-    name: bitnami/kubectl:1.17
-    entrypoint: [""]
-  when: manual
-  stage: deploy
-  variables:
-    GIT_STRATEGY: none
-  environment:
-    name: staging
-  script:
-    - kubectl --kubeconfig=$KUBECONFIG -n staging set image cronjobs/ds-automated-email-staging automated-email-crontab=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-
-deploy ISTIO-PROD:
-  image: 
-    name: bitnami/kubectl:1.17
-    entrypoint: [""]
-  when: manual
-  stage: deploy
-  variables:
-    GIT_STRATEGY: none
-  environment:
-    name: production-istio
-  script:
-    - kubectl --kubeconfig=$KUBECONFIG -n production set image cronjobs/ds-automated-email-prod automated-email-crontab=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - kubectl --kubeconfig=$KUBECONFIG -n development set image cronjobs/ds-training-content-scraper training-content-crontab=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
