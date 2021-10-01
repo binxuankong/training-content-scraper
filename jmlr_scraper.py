@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from headers import headers_list
 from skill_extraction import extract_skills, extract_ignore, extract_data_skills
 
-def jmlr_scraper(skills):
+def jmlr_scraper(skills, engine):
     base_url = 'https://jmlr.org'
     url = base_url + '/papers/v22/'
     page = requests.get(url, headers=random.choice(headers_list))
@@ -13,12 +13,19 @@ def jmlr_scraper(skills):
         return
     soup = BeautifulSoup(page.content, 'html.parser')
     dls = soup.findAll('dl')
+    # Get existing papers in database
+    df_ex = pd.read_sql_query('select cj.id, cj.title from "ContentJMLR" cj', engine)
+    ex_papers = df_ex['title'].unique().tolist()
     papers = []
     # Iterate through each paper
+    has_new = False
     for dl in dls:
+        title = dl.find('dt').get_text()
+        if title in ex_papers:
+            continue
         paper = {}
-        paper['title'] = dl.find('dt').get_text()
         dd = dl.find('dd')
+        paper['title'] = title
         paper['authors'] = dd.get_text().split(';')[0].strip()
         paper['journal_num'] = dd.get_text().split(';')[-1].split('\n')[0].strip()
         for a in dd.findAll('a'):
@@ -26,7 +33,7 @@ def jmlr_scraper(skills):
                 continue
             href = a['href']
             if 'http' not in href:
-                href = 'https://jmlr.org' + href
+                href = base_url + href
             paper[a.get_text()] = href
         # Get abstract of paper and extract skills
         output = get_abstract_skills(paper, skills)
@@ -38,11 +45,13 @@ def jmlr_scraper(skills):
                 if len(data_skills) > 0:
                     paper['data_skills'] = '; '.join(data_skills)
         papers.append(paper)
-    df = pd.DataFrame.from_dict(papers)
-    df['id'] = df.index + 1
-    df = df[['id', 'title', 'authors', 'journal_num', 'abs', 'pdf', 'bib', 'code', 'supplementary', 'website', 'blog',
-             'abstract', 'skills', 'data_skills']]
-    return df
+        has_new = True
+    # Compile into dataframe if we have new papers
+    if has_new:
+        df = pd.DataFrame.from_dict(papers)
+        df['id'] = df.index + max(df_ex['id']) + 1
+        return df
+    return None
 
 def get_abstract_skills(paper, skills):
     page = requests.get(paper['abs'], headers=random.choice(headers_list))

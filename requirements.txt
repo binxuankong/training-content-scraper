@@ -2,4 +2,7 @@ pandas
 re
 nltk
 difflab
-sqlalchemy
+psycopg2
+SQLAlchemy
+beautifulsoup4
+requests

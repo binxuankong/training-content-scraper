@@ -1,8 +1,8 @@
 import pandas as pd
 import datetime as dt
 from sqlalchemy import create_engine
-# from config.settings import settings
-from secrets import settings
+from config.settings import settings
+# from secrets import settings
 from jmlr_scraper import jmlr_scraper
 from medium_scraper import medium_scraper
 from queries import *
@@ -22,11 +22,20 @@ def main():
     all_skills = (skills, red_skills, dup_skills)
 
     # JMLR
-    # df_jmlr = jmlr_scraper(skills)
+    try:
+        df_jmlr = jmlr_scraper(all_skills, engine)
+        if df_jmlr is not None:
+            df_jmlr.to_sql('ContentJMLR', engine, index=False, if_exists='append')
+            print('Succesfully scraped contents from JMLR.')
+        else:
+            print('No new content from JMLR.')
+    except Exception as e:
+        print('Error in scraping contents from JMLR:', e)
 
     # Medium
     try:
-        date = dt.datetime(2021, 9, 23)
+        # Scrape content with 7 days delay
+        date = dt.datetime.now() - dt.timedelta(days=7)
         df_med_ds = medium_scraper('data-science', date, all_skills)
         df_med_ml = medium_scraper('machine-learning', date, all_skills)
         df_med = df_med_ds.append(df_med_ml)
