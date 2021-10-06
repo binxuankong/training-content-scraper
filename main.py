@@ -7,12 +7,14 @@ from config.settings import settings
 from jmlr_scraper import jmlr_scraper
 from medium_scraper import medium_scraper
 from youtube_scraper import youtube_scraper
+from kdnuggets_scraper import kdnuggets_scraper
 from queries import *
 from data_skills import DATA_SKILLS
 
 
 def main():
     engine = create_engine(settings['skills_db'])
+    today = dt.datetime.today()
 
     # Get skills
     df_skills = pd.read_sql_query(skills_query, engine)
@@ -38,7 +40,7 @@ def main():
     # Medium
     try:
         # Scrape content with 7 days delay
-        date = dt.datetime.now() - dt.timedelta(days=7)
+        date = today - dt.timedelta(days=7)
         df_med_ds = medium_scraper('data-science', date, all_skills)
         df_med_ml = medium_scraper('machine-learning', date, all_skills)
         df_med_de = medium_scraper('data-engineering', date, all_skills)
@@ -53,7 +55,7 @@ def main():
     
     # Youtube
     # Scrape only at the start of the month
-    if dt.datetime.today().day == 1:
+    if today.day == 1:
         try:
             df_yt = pd.DataFrame()
             for skill in DATA_SKILLS:
@@ -69,6 +71,20 @@ def main():
             print('Succesfully scraped contents from Youtube')
         except Exception as e:
             print('Error in scraping contents from Youtube:', e)
+
+    # KDnuggets
+    # Scrape only at the start of the month
+    if today.day == 2:
+        try:
+            df_kdn = kdnuggets_scraper('tutorials', today.month, today.year)
+            df_kdn = df_kdn.append(kdnuggets_scraper('opinions', today.month, today.year))
+            df_kdn = df_kdn.drop_duplicates(subset='id')
+            df_kdn = df_kdn.sort_values(by=['date', 'id'])
+            df_kdn.to_sql('ContentKDnuggets', engine, index=False, if_exists='replace')
+            print('Succesfully scraped contents from KDnuggets')
+        except Exception as e:
+            print('Error in scraping contents from KDnuggets:', e)
+
 
     engine.dispose()
     return
