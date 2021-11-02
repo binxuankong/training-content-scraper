@@ -76,11 +76,17 @@ def main():
     # Scrape only at the start of the month
     if today.day == 2:
         try:
-            df_kdn = kdnuggets_scraper('tutorials', today.month, today.year)
-            df_kdn = df_kdn.append(kdnuggets_scraper('opinions', today.month, today.year))
+            if today.month == 12:
+                month = 1
+                year = today.year - 1
+            else:
+                month = today.month - 1
+                year = today.year
+            df_kdn = kdnuggets_scraper('tutorials', month, year, all_skills)
+            df_kdn = df_kdn.append(kdnuggets_scraper('opinions', month, year, all_skills))
             df_kdn = df_kdn.drop_duplicates(subset='id')
             df_kdn = df_kdn.sort_values(by=['date', 'id'])
-            df_kdn.to_sql('ContentKDnuggets', engine, index=False, if_exists='replace')
+            df_kdn.to_sql('ContentKDnuggets', engine, index=False, if_exists='append')
             print('Succesfully scraped contents from KDnuggets')
         except Exception as e:
             print('Error in scraping contents from KDnuggets:', e)

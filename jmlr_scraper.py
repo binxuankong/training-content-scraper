@@ -27,7 +27,7 @@ def jmlr_scraper(skills, engine):
         dd = dl.find('dd')
         paper['title'] = title
         paper['authors'] = dd.get_text().split(';')[0].strip()
-        paper['journal_num'] = dd.get_text().split(';')[-1].split('\n')[0].split('(').strip()
+        paper['journal_num'] = dd.get_text().split(';')[-1].split('\n')[0].strip()
         for a in dd.findAll('a'):
             if a.get_text() == '(Machine Learning Open Source Software Paper)':
                 continue

@@ -1,14 +1,12 @@
 import random
 import requests
 import pandas as pd
-import json
-import datetime as dt
 from bs4 import BeautifulSoup
 from headers import headers_list
 from skill_extraction import extract_skills, extract_ignore, extract_data_skills
 
 # type_: tutorials/opinions
-def kdnuggets_scraper(type_, month, year):
+def kdnuggets_scraper(type_, month, year, skills):
     base_url = 'https://www.kdnuggets.com/{}/{:>02}/{}.html' #:>02 to add leading 0 to month
     url = base_url.format(year, month, type_)
     page = requests.get(url, headers=random.choice(headers_list))
@@ -24,7 +22,7 @@ def kdnuggets_scraper(type_, month, year):
             continue
         description = get_description(item)
         tags = get_tags(item)
-        skills, data_skills = get_skills(title, description, tags)
+        this_skills, data_skills = get_skills(title, description, tags, skills)
         post_list.append({
             'id': get_id(item),
             'title': title,
@@ -34,7 +32,7 @@ def kdnuggets_scraper(type_, month, year):
             'description': description,
             'type': type_,
             'tags': tags,
-            'skills': skills,
+            'skills': this_skills,
             'data_skills': data_skills,
         })
     df = pd.DataFrame.from_dict(post_list)
@@ -88,14 +86,14 @@ def get_tags(item):
     except:
         return None
 
-def get_skills(title, description, tags):
+def get_skills(title, description, tags, skills):
     context = title
     if description is not None:
         context = context + ' ' + description
     if tags is not None:
         context = context + ' ' + tags
-    all_skills = extract_skills(context)
-    keep_skills, _ = extract_ignore(all_skills)
+    all_skills = extract_skills(context, skills[0])
+    keep_skills, _ = extract_ignore(all_skills, skills[1], skills[2])
     keep_skills.sort()
     if len(keep_skills) > 0:
         data_skills = extract_data_skills(keep_skills)
