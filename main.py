@@ -76,8 +76,8 @@ def main():
     # Scrape only at the start of the month
     if today.day == 2:
         try:
-            if today.month == 12:
-                month = 1
+            if today.month == 1:
+                month = 12
                 year = today.year - 1
             else:
                 month = today.month - 1
