@@ -10,6 +10,10 @@ dupskills_query = """
 select ask."Skill", s."Skill" as "Parent" from "AlternateSkill" ask join "Skill" s on s."Id" = ask."Id"
 """
 
+medium_date_query = """
+'select cm.published_date from "ContentMedium" cm order by cm.published_date desc limit 1'
+"""
+
 youtube_update_query = """
 update "ContentYoutube" cy
 set title = cyt.title, view_count = cyt.view_count, description = cyt.description, skills = cyt.skills, data_skills = cyt.data_skills

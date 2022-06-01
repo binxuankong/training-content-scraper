@@ -1,13 +1,11 @@
-import pandas as pd
 import re
 from nltk import ngrams
 from difflib import get_close_matches as gcm
-from collections import Counter
-from data_skills import DATA_SKILLS, SKILL_DICT
+from regex import D
+from data_skills import DATA_SKILLS, MAP_TO_DATA_SKILLS, SKILL_DICT
 
 # Data skills (lower cased)
 DATA_SKILLS_LOW = [s.lower() for s in DATA_SKILLS]
-
 
 # Extract skills from text
 # Change threshold for string matching, the higher the threshold the stricter is the matching
@@ -76,7 +74,13 @@ def extract_ignore(skills, red_skills, dup_skills):
 
 # Get data skills from all skills
 def extract_data_skills(all_skills):
-    data_skills = [s for s in all_skills if s.lower() in DATA_SKILLS_LOW]
+    data_skills = []
+    for skill in all_skills:
+        if skill.lower() in DATA_SKILLS_LOW:
+            data_skills.append(skill)
+        if skill in MAP_TO_DATA_SKILLS.keys():
+            data_skills.append(MAP_TO_DATA_SKILLS[skill])
+    data_skills = list(set(data_skills))
     data_skills = [SKILL_DICT[s] if s in SKILL_DICT.keys() else s for s in data_skills]
     return data_skills
 
