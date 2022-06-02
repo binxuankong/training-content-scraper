@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from headers import headers_list
 from skill_extraction import extract_skills, extract_ignore, extract_data_skills
 
-def youtube_scraper(skill, filter_time, skills):
+def get_youtube_videos(skill, filter_time, skills):
     base_url = 'https://www.youtube.com'
     # Dictionary for filtering search query
     sp_dict = {'this_year': 'EgQIBRAB', 'this_month': 'EgQIBBAB', 'this_week': 'EgQIAxAB', 'today': 'EgQIAhAB'}
@@ -48,6 +48,7 @@ def youtube_scraper(skill, filter_time, skills):
             video_list.append({
                 'id': content['videoId'],
                 'title': title,
+                'channel_id': get_channel_id(content),
                 'channel': get_text(content, 'ownerText'),
                 'published_year': published_year,
                 'published_month': published_month,
@@ -58,9 +59,15 @@ def youtube_scraper(skill, filter_time, skills):
                 'skills': this_skills,
                 'data_skills': data_skills
             })
-    df = pd.DataFrame.from_dict(video_list) 
+    df = pd.DataFrame.from_dict(video_list)
     # df['length'] = pd.to_timedelta(df['length'])
     return df
+    
+def get_channel_id(content):
+    try:
+        return content['ownerText']['runs'][0]['navigationEndpoint']['browseEndpoint']['browseId']
+    except:
+        return None
 
 def get_text(content, info):
     try:
